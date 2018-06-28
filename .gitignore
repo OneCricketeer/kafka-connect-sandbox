@@ -1,0 +1,7 @@
+.env
+schemas.txt
+data/.minio.sys
+data/example-kafka-backup-bucket/*
+
+kafka-connect/**/*.jar
+kafka-connect/plugins/*
