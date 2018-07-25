@@ -1,0 +1,22 @@
+{
+  "name": "example-topic-backup-minio",
+  "config": {
+    "topics": "clicks",
+    "tasks.max": "1",
+
+    "name": "example-topic-backup-minio",
+    "connector.class": "com.spredfast.kafka.connect.s3.sink.S3SinkConnector",
+    "s3.bucket": "example-kafka-backup-bucket",
+    "format": "binary",
+    "format.include.keys": "true",
+    "key.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+    "value.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+    "local.buffer.dir": "/tmp",
+
+    "__comment": "Minio docker container testing",
+    "s3.prefix": "backup-kafka-connect/",
+    "s3.path_style": "true",
+    "__comment": "Change URL to use external host address",
+    "s3.endpoint": "http://192.168.1.111:9001"
+  }
+}

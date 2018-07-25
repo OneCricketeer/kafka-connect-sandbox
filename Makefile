@@ -13,7 +13,7 @@ connect: s3
 	docker-compose up kafka-connect kafka-connect-ui
 clean:
 	docker-compose stop && docker-compose rm -f
-	#rm -rf ./data/$(BUCKET_NAME)/*
+	@#rm -rf ./data/$(BUCKET_NAME)/*
 s3:
 	docker-compose up -d minio
 
@@ -23,7 +23,10 @@ create-topic-$(TOPIC):
 	--partitions $(PARTITIONS) --replication-factor=1
 
 s3-sink:
-	curl -XPOST -H Content-Type:application/json -d@sinks/s3-minio.json $(CONNECT_URL)/connectors
+	curl -XPOST -H Content-Type:application/json -d@sinks/s3-minio-binary-backup.json $(CONNECT_URL)/connectors
+s3-sink-confluent:
+	curl -XPOST -H Content-Type:application/json -d@sinks/s3-minio-confluent.json $(CONNECT_URL)/connectors
+
 clean-s3-sink:
 	curl -XDELETE $(CONNECT_URL)/connectors/$(S3_SINK_CONNECTOR_NAME)
 

@@ -1,0 +1,32 @@
+{
+  "name": "example-topic-backup-minio",
+  "config": {
+    "topics": "clicks",
+    "tasks.max": "1",
+
+    "name": "example-topic-backup-minio",
+    "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+    "s3.bucket.name": "example-kafka-backup-bucket",
+
+    "key.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
+    "value.converter": "io.confluent.connect.avro.AvroConverter",
+    "value.converter.schema.registry.url": "http://schema_registry:8081",
+    "local.buffer.dir": "/tmp",
+
+    "__comment": "Confluent Kafka Connect properties",
+    "flush.size": "200",
+    "store.url": "http://minio:9000",
+    "s3.part.size": "5242880",
+    "storage.class": "io.confluent.connect.s3.storage.S3Storage",
+    "format.class": "io.confluent.connect.s3.format.avro.AvroFormat",
+    "schema.generator.class": "io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator",
+    "partitioner.class": "io.confluent.connect.storage.partitioner.DefaultPartitioner",
+    "schema.compatibility": "BACKWARD",
+    "file.delim": "-",
+
+    "__comment": "Transforms",
+    "_transforms": "archive",
+    "__comment": "Transform to backup keys",
+    "_transforms.archive.type": "com.github.jcustenborder.kafka.connect.archive.Archive"
+  }
+}

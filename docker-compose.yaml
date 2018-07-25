@@ -24,46 +24,51 @@ services:
 
   # The primary Kafka Server to backup
   kafka:
+    image: confluentinc/cp-kafka:${TAG}
+    ports:
+      - 9092:9092
     environment:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    image: confluentinc/cp-kafka:${TAG}
     links:
       - zookeeper
-    ports:
-      - 9092:9092
 
   # A Kafka Server to replicate or recover data to
   # Does not integrate with the Schema Registry or Kafka Connect container
   drkafka:
+    image: confluentinc/cp-kafka:${TAG}
+    ports:
+      - 9192:9092
     environment:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/drkafka"  # Different ZK chroot
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://drkafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    image: confluentinc/cp-kafka:${TAG}
     links:
       - zookeeper
-    ports:
-      - 9192:9092
 
   # Confluent Avro Schema Registry
   schema_registry:
     image: confluentinc/cp-schema-registry:${TAG}
     hostname: schema_registry
-    depends_on:
-      - zookeeper
-      - kafka
     ports:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema_registry
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181/kafka'
+    depends_on:
+      - zookeeper
+      - kafka
 
-  # Kafka Connect Image w/ Replicator
+  # Kafka Connect Image
   kafka-connect:
+    image: confluentinc/cp-kafka-connect:${TAG}
+    hostname: kafka-connect
+    ports:
+      - 8083:8083
+      - 5005:5005
     environment:
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
@@ -86,14 +91,12 @@ services:
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}          # For S3 Connect
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}  # For S3 Connect
-    image: confluentinc/cp-enterprise-replicator:${TAG}
+      KAFKA_DEBUG: ${KAFKA_DEBUG}
     links:
       - zookeeper
       - kafka
       - schema_registry
       - minio
-    ports:
-      - 8083:8083
     volumes:
       - ./kafka-connect/jars:/etc/kafka-connect/jars
       - ./kafka-connect/plugins/:/etc/kafka-connect/plugins/
