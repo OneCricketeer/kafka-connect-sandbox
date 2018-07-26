@@ -9,5 +9,9 @@ I'm using `make` targets to run things, but directly using `docker-compose` shou
 
 **References**
 
- - https://docs.confluent.io/current/connect/index.html
- - https://blog.minio.io/journaling-kafka-messages-with-s3-connector-and-minio-83651a51045d
+ - Using Kafka Connect for raw topic backups (Confluent S3 Connector doesn't preserve keys using `ByteArrayFormat`)
+   - https://jobs.zalando.com/tech/blog/backing-up-kafka-zookeeper/index.html?gh_src=4n3gxh1
+   - https://github.com/imduffy15/kafka-connect-s3
+ - Produce Avro Data: https://github.com/confluentinc/examples/tree/master/kafka-clients/specific-avro-producer
+ - Setup Connectors: https://docs.confluent.io/current/connect/index.html
+ - Local S3 (Minio) w/ Connect: https://blog.minio.io/journaling-kafka-messages-with-s3-connector-and-minio-83651a51045d
