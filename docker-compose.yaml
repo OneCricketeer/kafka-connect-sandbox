@@ -29,7 +29,7 @@ services:
       - 9092:9092
     environment:
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
+      KAFKA_ZOOKEEPER_CONNECT: ${ZK_CONNECTION}
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
     links:
@@ -57,7 +57,7 @@ services:
       - "8081:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema_registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper:2181/kafka'
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: ${ZK_CONNECTION}
     depends_on:
       - zookeeper
       - kafka
@@ -72,12 +72,12 @@ services:
     environment:
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
       CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
-      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
-      CONNECT_ZOOKEEPER_CONNECT: zookeeper:2181/kafka
-      CONNECT_GROUP_ID: kafka-connect
-      CONNECT_CONFIG_STORAGE_TOPIC: kafka-connect-config
-      CONNECT_OFFSET_STORAGE_TOPIC: kafka-connect-offsets
-      CONNECT_STATUS_STORAGE_TOPIC: kafka-connect-status
+      CONNECT_BOOTSTRAP_SERVERS: ${BOOTSTRAP_SERVERS}
+      CONNECT_ZOOKEEPER_CONNECT: ${ZK_CONNECTION}
+      CONNECT_GROUP_ID: jomoore-docker-kafka-connect
+      CONNECT_CONFIG_STORAGE_TOPIC: jomoore-docker-connect-config
+      CONNECT_OFFSET_STORAGE_TOPIC: jomoore-docker-connect-offsets
+      CONNECT_STATUS_STORAGE_TOPIC: jomoore-docker-connect-status
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
