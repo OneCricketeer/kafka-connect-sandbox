@@ -75,9 +75,9 @@ services:
       CONNECT_BOOTSTRAP_SERVERS: ${BOOTSTRAP_SERVERS}
       CONNECT_ZOOKEEPER_CONNECT: ${ZK_CONNECTION}
       CONNECT_GROUP_ID: jomoore-docker-kafka-connect
-      CONNECT_CONFIG_STORAGE_TOPIC: jomoore-docker-connect-config
-      CONNECT_OFFSET_STORAGE_TOPIC: jomoore-docker-connect-offsets
-      CONNECT_STATUS_STORAGE_TOPIC: jomoore-docker-connect-status
+      CONNECT_CONFIG_STORAGE_TOPIC: jomoore-docker_connect_config
+      CONNECT_OFFSET_STORAGE_TOPIC: jomoore-docker_connect_offsets
+      CONNECT_STATUS_STORAGE_TOPIC: jomoore-docker_connect_status
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
@@ -85,7 +85,7 @@ services:
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/plugins/
+      CONNECT_PLUGIN_PATH: /usr/share/java,/opt/kafka-connect-extras,/etc/kafka-connect/plugins/
       CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
       CONNECT_TASK_SHUTDOWN_GRACEFUL_TIMEOUT_MS: 30000
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
@@ -98,7 +98,7 @@ services:
       - schema_registry
       - minio
     volumes:
-      - ./kafka-connect/jars:/etc/kafka-connect/jars
+      - ./kafka-connect/jars:/opt/kafka-connect-extras
       - ./kafka-connect/plugins/:/etc/kafka-connect/plugins/
       # - ~/.aws:/root/.aws
 
