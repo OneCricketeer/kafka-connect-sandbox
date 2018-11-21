@@ -1,0 +1,16 @@
+version: '3'
+
+services:
+
+  sqlserver:
+    image: microsoft/mssql-server-linux:2017-GA
+    ports:
+      - "1433:1433"
+    networks:
+      - kafka-connect
+    environment:
+      ACCEPT_EULA: "Y"
+      SA_PASSWORD: ${SQL_SERVER_PASS}
+
+networks:
+  kafka-connect:

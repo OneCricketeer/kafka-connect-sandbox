@@ -1,0 +1,15 @@
+{ "name": "sqlserver-TEST-source-bulk", "config": {
+  "tasks.max": "1",
+  "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+
+  "connection.user": "SA",
+  "connection.url": "jdbc:sqlserver://sqlserver:1433;database=TEST",
+  "connection.password": "Qwerty123&",
+
+  "mode": "bulk",
+  "table.whitelist": "table_test",
+
+  "topic.prefix": "SQLSERVER-TEST-",
+
+  "validate.non.null": "false"
+}}

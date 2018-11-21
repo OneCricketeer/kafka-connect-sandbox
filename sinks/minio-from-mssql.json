@@ -1,0 +1,25 @@
+{"name": "minio-from-mssql", "config": {
+  "tasks.max": 3,
+  "connector.class": "io.confluent.connect.s3.S3SinkConnector",
+  "storage.class": "io.confluent.connect.s3.storage.S3Storage",
+
+  "topics": "SQLSERVER-TEST-TABLE_TEST",
+  "flush.size": 5,
+
+  "store.url": "http://minio:9000",
+  "s3.region": "us-east-1",
+  "s3.bucket.name": "datalake",
+  "topics.dir": "TABLE_TEST",
+  "s3.part.size": 5242880,
+
+  "partitioner.class": "io.confluent.connect.storage.partitioner.DefaultPartitioner",
+  "schema.generator.class": "io.confluent.connect.storage.hive.schema.DefaultSchemaGenerator",
+
+  "format.class": "io.confluent.connect.s3.format.avro.AvroFormat",
+  "schema.compatibility": "NONE",
+
+  "transforms":"dropPrefix",
+  "transforms.dropPrefix.type":"org.apache.kafka.connect.transforms.RegexRouter",
+  "transforms.dropPrefix.regex":"SQLSERVER-TEST-(.*)",
+  "transforms.dropPrefix.replacement":"$1"
+}}

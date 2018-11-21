@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+
+  # Emulated S3 endpoint
+  minio:
+    image: minio/minio:${MINIO_TAG}
+    ports:
+      - "9000:9000"
+    networks:
+      - kafka-connect
+    env_file: ../.env
+    environment:
+      MINIO_ACCESS_KEY: ${AWS_ACCESS_KEY_ID}
+      MINIO_SECRET_KEY: ${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ../../minio-data:/data
+    entrypoint: sh
+    command: -c 'mkdir -p /data/datalake && minio server /data'
+
+networks:
+  kafka-connect:

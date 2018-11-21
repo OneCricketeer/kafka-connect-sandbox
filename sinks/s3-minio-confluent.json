@@ -10,7 +10,7 @@
 
     "key.converter": "org.apache.kafka.connect.converters.ByteArrayConverter",
     "value.converter": "io.confluent.connect.avro.AvroConverter",
-    "value.converter.schema.registry.url": "http://schema_registry:8081",
+    "value.converter.schema.registry.url": "http://schema-registry:8081",
     "local.buffer.dir": "/tmp",
 
     "__comment": "Confluent Kafka Connect properties",

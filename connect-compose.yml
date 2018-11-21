@@ -1,0 +1,114 @@
+version: '3'
+
+services:
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:${CP_TAG}
+    ports:
+      - 2181:2181
+    networks:
+      - kafka-backend
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka:
+    image: confluentinc/cp-kafka:${CP_TAG}
+    ports:
+      - 9092:9092
+    depends_on:
+      - zookeeper
+    networks:
+      - kafka-backend
+      - kafka-frontend
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      # KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  schema-registry:
+    image: confluentinc/cp-schema-registry:${CP_TAG}
+    hostname: schema-registry
+    depends_on:
+      - zookeeper
+      - kafka
+    ports:
+      - 8081:8081
+    networks:
+      - kafka-backend
+      - kafka-frontend
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:${CP_TAG}
+    hostname: kafka-connect
+    depends_on:
+      - zookeeper
+      - kafka
+      - schema-registry
+    ports:
+      - 8083:8083
+      - 5005:5005 # KAFKA_DEBUG port
+    networks:
+      - kafka-backend
+      - kafka-frontend
+      - kafka-connect
+    environment:
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_BOOTSTRAP_SERVERS: kafka:9092
+      CONNECT_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
+
+      CONNECT_GROUP_ID: cg_${CONNECT_TOPIC_NAMESPACE}
+      CONNECT_CONFIG_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_config
+      CONNECT_OFFSET_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_offsets
+      CONNECT_STATUS_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_status
+
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/uber/,/etc/kafka-connect/plugins
+
+      # Logging
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.reflections=ERROR
+      # Connect client overrides
+      CONNECT_TASK_SHUTDOWN_GRACEFUL_TIMEOUT_MS: 30000
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
+      CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
+      # AWS SDK Variables
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}          # For S3 Connect
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}  # For S3 Connect
+      # JVM Options
+      KAFKA_DEBUG: ${KAFKA_DEBUG}
+    volumes:
+      - ./kafka-connect/jars:/etc/kafka-connect/uber/
+      - ./kafka-connect/plugins/:/etc/kafka-connect/plugins/
+      - ./kafka-connect/jdbc-jars:/usr/share/java/kafka-connect-jdbc/lib
+      # - ~/.aws:/root/.aws  # If we had a default profile, this could work
+
+  kafka-connect-ui:
+    image: landoop/kafka-connect-ui:0.9.6
+    hostname: kafka-connect-ui
+    depends_on:
+      - kafka-connect
+    ports:
+      - 8003:8000
+    networks:
+      - kafka-frontend
+      - kafka-connect
+    environment:
+      CONNECT_URL: "http://kafka-connect:8083/"
+      PROXY: "true"
+
+networks:
+  kafka-backend:
+  kafka-frontend:
+  kafka-connect:
