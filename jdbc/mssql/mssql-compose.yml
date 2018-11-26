@@ -8,6 +8,7 @@ services:
       - "1433:1433"
     networks:
       - kafka-connect
+    env_file: ../../.env
     environment:
       ACCEPT_EULA: "Y"
       SA_PASSWORD: ${SQL_SERVER_PASS}

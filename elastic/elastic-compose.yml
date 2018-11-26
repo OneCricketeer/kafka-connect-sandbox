@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+    
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:${ELASTIC_TAG}
+    # volumes:
+    #   - ./config/elasticsearch/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    networks:
+      - elk
+      - kafka-connect
+    env_file: ../.env
+    environment:
+      cluster.name: elastic.kafka-connect.sandbox
+      bootstrap.memory_lock: "true"
+      discovery.type: single-node
+      ES_JAVA_OPTS: "-Xms156m -Xmx1g"
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:${ELASTIC_TAG}
+    depends_on:
+      - elasticsearch
+    # volumes:
+    #   - ./config/kibana/:/usr/share/kibana/config:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - elk
+    env_file: ../.env
+    environment:
+      SERVER_NAME: kibana.kafka-connect.sandbox
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+
+networks:
+  elk:
+  kafka-connect:

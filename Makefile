@@ -88,4 +88,5 @@ schemas-restore:
 	kafka-console-producer --broker-list $(BOOTSTRAP) --topic _schemas --property parse.key=true < schemas.txt
 
 include s3-minio/Makefile
+include elastic/Makefile
 include jdbc/mssql/Makefile
