@@ -10,7 +10,6 @@ I'm using `make` targets to run things... *TODO: Document what's available*
 Other Prerequisites:  
  - `docker` && `docker-compose`
  - `make`
- - Confluent Platform `bin/` tools installed on the `PATH` - *TODO: Refactor to `docker run --rm` commands*
 
 **References**
 

@@ -24,7 +24,7 @@ CONNECT_HEADERS = -H Content-Type:application/json
 .PHONY: kafka connect
 kafka:
 	docker-compose -f $(CONNECT_COMPOSE_FILE) up -d kafka
-	echo "Waiting for Kafka"
+	@echo "Waiting for Kafka"
 	@sleep 10
 connect: kafka create-connect-topics-$(CONNECT_TOPIC_NAMESPACE)
 	docker-compose -f $(CONNECT_COMPOSE_FILE) up -d kafka-connect kafka-connect-ui
@@ -32,49 +32,54 @@ clean-connect:
 	docker-compose -f $(CONNECT_COMPOSE_FILE) stop && docker-compose -f $(CONNECT_COMPOSE_FILE) rm -f
 
 list-topics:
-	kafka-topics --zookeeper $(ZKROOT) --list
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	kafka-topics --zookeeper zookeeper:2181/kafka --list
 
 consume-$(TOPIC):
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	kafka-console-consumer --topic=$(TOPIC) \
+	--bootstrap-server $(BOOTSTRAP) \
+	--property print.key=true \
+	--from-beginning
+
+consume-avro-$(TOPIC):
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec schema-registry \
 	kafka-avro-console-consumer --topic=$(TOPIC) \
 	--bootstrap-server $(BOOTSTRAP) \
-	--property schema.registry.url=$(SR) \
+	--property schema.registry.url=http://schema-registry:8081 \
 	--property key-deserializer=org.apache.kafka.common.serialization.StringDeserializer \
 	--property print.key=true \
 	--from-beginning
 
 create-topic-$(TOPIC):
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
 	kafka-topics --create --topic $(TOPIC) \
-	--zookeeper $(ZKROOT) \
+	--zookeeper zookeeper:2181/kafka \
 	--partitions $(PARTITIONS) --replication-factor=1
 
 clean-topic-$(TOPIC):
-	kafka-topics --zookeeper $(ZKROOT) --delete --topic $(TOPIC)
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(TOPIC)
 
 
 get-connects:
 	curl $(CONNECT_URL)/connectors
 
 create-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
-	kafka-topics --create --if-not-exists --zookeeper $(ZKROOT) --topic $(CONNECT_TOPIC_NAMESPACE)_configs --replication-factor 1 --partitions 1 --config cleanup.policy=compact --disable-rack-aware
-	kafka-topics --create --if-not-exists --zookeeper $(ZKROOT) --topic $(CONNECT_TOPIC_NAMESPACE)_offsets --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware
-	kafka-topics --create --if-not-exists --zookeeper $(ZKROOT) --topic $(CONNECT_TOPIC_NAMESPACE)_status --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka bash -c \
+	"kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_configs --replication-factor 1 --partitions 1 --config cleanup.policy=compact --disable-rack-aware \
+	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_offsets --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware \
+	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_status --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware"
 
 clean-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
-	kafka-topics --zookeeper $(ZKROOT) --delete --topic $(CONNECT_TOPIC_NAMESPACE)_config
-	kafka-topics --zookeeper $(ZKROOT) --delete --topic $(CONNECT_TOPIC_NAMESPACE)_offsets
-	kafka-topics --zookeeper $(ZKROOT) --delete --topic $(CONNECT_TOPIC_NAMESPACE)_status
+	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka bash -c \
+	"kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_config
+	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_offsets
+	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_status"
 
 clean-connector-$(CONNECTOR_NAME):
 	@curl -XDELETE $(CONNECT_URL)/connectors/$(CONNECTOR_NAME)
 
-
-
-# Schema Registry consumers
-consume-schemas:
-	kafka-console-consumer --topic _schemas \
-	--bootstrap-server $(BOOTSTRAP) \
-	--property print.key=true \
-	--from-beginning
 
 schemas-restore:
 	# export SCHEMA=$$(jq tostring LogLine.avsc)
