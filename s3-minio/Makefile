@@ -4,9 +4,9 @@ BUCKET_NAME ?= datalake
 
 .PHONY: s3-minio
 s3-minio: connect
-	docker-compose -f $(MINIO_COMPOSE_FILE) up -d
+	docker-compose -f $(MINIO_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d
 clean-s3-minio:
-	docker-compose -f $(MINIO_COMPOSE_FILE) stop && docker-compose -f $(MINIO_COMPOSE_FILE) rm -f
+	docker-compose -f $(MINIO_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) stop && docker-compose -f $(MINIO_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -f
 	@#rm -rf ../minio-data/$(BUCKET_NAME)/*
 
 ##########

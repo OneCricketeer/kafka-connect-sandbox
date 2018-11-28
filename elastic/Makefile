@@ -2,9 +2,9 @@ ELASTIC_COMPOSE_FILE = elastic/elastic-compose.yml
 
 .PHONY: elastic
 elastic: connect
-	docker-compose -f $(ELASTIC_COMPOSE_FILE) up -d
+	docker-compose -f $(ELASTIC_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d
 clean-elastic:
-	docker-compose -f $(ELASTIC_COMPOSE_FILE) stop && docker-compose -f $(ELASTIC_COMPOSE_FILE) rm -f
+	docker-compose -f $(ELASTIC_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) stop && docker-compose -f $(ELASTIC_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -f
 
 ##########
 # Sinks

@@ -2,8 +2,5 @@
 
 schemas.txt
 
-s3-minio/minio-data/.minio.sys/
-s3-minio/minio-data/datalake/
-
 kafka-connect/**/*.jar
 kafka-connect/plugins/*

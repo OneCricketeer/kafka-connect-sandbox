@@ -1,3 +1,5 @@
+COMPOSE_PROJECT_NAME ?= kafka-connect-sandbox
+
 CONNECT_COMPOSE_FILE = connect-compose.yml
 
 BOOTSTRAP ?= localhost:9092
@@ -23,27 +25,27 @@ CONNECT_HEADERS = -H Content-Type:application/json
 
 .PHONY: kafka connect
 kafka:
-	docker-compose -f $(CONNECT_COMPOSE_FILE) up -d kafka
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d kafka
 	@echo "Waiting for Kafka"
 	@sleep 10
 connect: kafka create-connect-topics-$(CONNECT_TOPIC_NAMESPACE)
-	docker-compose -f $(CONNECT_COMPOSE_FILE) up -d kafka-connect kafka-connect-ui
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d kafka-connect kafka-connect-ui
 clean-connect:
-	docker-compose -f $(CONNECT_COMPOSE_FILE) stop && docker-compose -f $(CONNECT_COMPOSE_FILE) rm -f
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) stop && docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -f
 
 list-topics:
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka \
 	kafka-topics --zookeeper zookeeper:2181/kafka --list
 
 consume-$(TOPIC):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka \
 	kafka-console-consumer --topic=$(TOPIC) \
 	--bootstrap-server $(BOOTSTRAP) \
 	--property print.key=true \
 	--from-beginning
 
 consume-avro-$(TOPIC):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec schema-registry \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec schema-registry \
 	kafka-avro-console-consumer --topic=$(TOPIC) \
 	--bootstrap-server $(BOOTSTRAP) \
 	--property schema.registry.url=http://schema-registry:8081 \
@@ -52,13 +54,13 @@ consume-avro-$(TOPIC):
 	--from-beginning
 
 create-topic-$(TOPIC):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka \
 	kafka-topics --create --topic $(TOPIC) \
 	--zookeeper zookeeper:2181/kafka \
 	--partitions $(PARTITIONS) --replication-factor=1
 
 clean-topic-$(TOPIC):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka \
 	kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(TOPIC)
 
 
@@ -66,13 +68,13 @@ get-connects:
 	curl $(CONNECT_URL)/connectors
 
 create-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka bash -c \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka bash -c \
 	"kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_configs --replication-factor 1 --partitions 1 --config cleanup.policy=compact --disable-rack-aware \
 	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_offsets --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware \
 	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_status --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware"
 
 clean-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
-	docker-compose -f $(CONNECT_COMPOSE_FILE) exec kafka bash -c \
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka bash -c \
 	"kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_config
 	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_offsets
 	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_status"

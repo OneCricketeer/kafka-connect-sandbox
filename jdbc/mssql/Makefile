@@ -2,9 +2,9 @@ MSSQL_COMPOSE_FILE = jdbc/mssql/mssql-compose.yml
 
 .PHONY: mssql
 mssql: connect
-	docker-compose -f $(MSSQL_COMPOSE_FILE) up -d
+	docker-compose -f $(MSSQL_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d
 clean-mssql:
-	docker-compose -f $(MSSQL_COMPOSE_FILE) stop && docker-compose -f $(MSSQL_COMPOSE_FILE) rm -f
+	docker-compose -f $(MSSQL_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) stop && docker-compose -f $(MSSQL_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -f
 
 ##########
 # Sinks

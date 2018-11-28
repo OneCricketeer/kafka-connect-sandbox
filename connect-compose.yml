@@ -15,6 +15,7 @@ services:
     image: confluentinc/cp-kafka:${CP_TAG}
     ports:
       - 9092:9092
+      - 29092:29092
     depends_on:
       - zookeeper
     networks:
@@ -22,8 +23,9 @@ services:
       - kafka-frontend
     environment:
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-      # KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
 
   schema-registry:
