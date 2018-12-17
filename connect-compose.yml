@@ -90,10 +90,11 @@ services:
       AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}  # For S3 Connect
       # JVM Options
       KAFKA_DEBUG: ${KAFKA_DEBUG}
+      # CLASSPATH: /usr/share/java/kafka-connect-jdbc/*.jar
     volumes:
       - ./kafka-connect/jars:/etc/kafka-connect/uber/
       - ./kafka-connect/plugins/:/etc/kafka-connect/plugins/
-      - ./kafka-connect/jdbc-jars:/usr/share/java/kafka-connect-jdbc/lib
+      - ./kafka-connect/jdbc-jars:/usr/share/java/kafka-connect-jdbc/lib:ro
       # - ~/.aws:/root/.aws  # If we had a default profile, this could work
 
   kafka-connect-ui:

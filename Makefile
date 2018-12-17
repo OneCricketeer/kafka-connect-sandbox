@@ -31,7 +31,7 @@ kafka:
 connect: kafka create-connect-topics-$(CONNECT_TOPIC_NAMESPACE)
 	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) up -d kafka-connect kafka-connect-ui
 clean-connect:
-	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) stop && docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -f
+	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) rm -fs
 
 list-topics:
 	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka \
@@ -92,3 +92,4 @@ schemas-restore:
 include s3-minio/Makefile
 include elastic/Makefile
 include jdbc/mssql/Makefile
+include cassandra/Makefile
