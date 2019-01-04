@@ -92,4 +92,5 @@ schemas-restore:
 include s3-minio/Makefile
 include elastic/Makefile
 include jdbc/mssql/Makefile
+include jdbc/cratedb/Makefile
 include cassandra/Makefile
