@@ -20,7 +20,6 @@ services:
       - zookeeper
     networks:
       - kafka-backend
-      - kafka-frontend
     environment:
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181/kafka"
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -38,10 +37,10 @@ services:
       - 8081:8081
     networks:
       - kafka-backend
-      - kafka-frontend
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka:9092
+      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: PLAINTEXT://kafka:9092
 
   kafka-connect:
     image: confluentinc/cp-kafka-connect:${CP_TAG}
@@ -55,7 +54,6 @@ services:
       - 5005:5005 # KAFKA_DEBUG port
     networks:
       - kafka-backend
-      - kafka-frontend
       - kafka-connect
     environment:
       CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
@@ -66,13 +64,14 @@ services:
       CONNECT_CONFIG_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_config
       CONNECT_OFFSET_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_offsets
       CONNECT_STATUS_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_status
-
+      # Cannot be higher than the number of brokers in the Kafka cluster
       CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
 
       CONNECT_KEY_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
       CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      # The internal topics aren't needed anymore in newer Kafka versions
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
 
@@ -85,17 +84,19 @@ services:
       CONNECT_TASK_SHUTDOWN_GRACEFUL_TIMEOUT_MS: 30000
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
       CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
-      # AWS SDK Variables
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}          # For S3 Connect
-      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}  # For S3 Connect
+      # AWS SDK Variables - For S3 Connect
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
       # JVM Options
       KAFKA_DEBUG: ${KAFKA_DEBUG}
-      # CLASSPATH: /usr/share/java/kafka-connect-jdbc/*.jar
+      # Some things just need to be on the classpath, not as plugins, like JDBC Drivers
+      CLASSPATH: /usr/share/java/kafka-connect-jdbc/lib/*.jar
     volumes:
       - ./kafka-connect/jars:/etc/kafka-connect/uber/
       - ./kafka-connect/plugins/:/etc/kafka-connect/plugins/
       - ./kafka-connect/jdbc-jars:/usr/share/java/kafka-connect-jdbc/lib:ro
-      # - ~/.aws:/root/.aws  # If we had a default profile, this could work
+      # Alternative AWS SDK solution for S3 Connect - use 'aws configure'
+      # - ~/.aws:/root/.aws
 
   kafka-connect-ui:
     image: landoop/kafka-connect-ui:0.9.6
@@ -105,13 +106,13 @@ services:
     ports:
       - 8003:8000
     networks:
-      - kafka-frontend
       - kafka-connect
     environment:
       CONNECT_URL: "http://kafka-connect:8083/"
       PROXY: "true"
 
 networks:
+  # Kafka, Zookeeper, Registry, Connect
   kafka-backend:
-  kafka-frontend:
+  # Connect, all sources and sink systems, and Connect UI
   kafka-connect:
