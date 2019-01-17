@@ -69,15 +69,15 @@ get-connects:
 
 create-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
 	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka bash -c \
-	"kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_configs --replication-factor 1 --partitions 1 --config cleanup.policy=compact --disable-rack-aware \
-	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_offsets --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware \
-	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_status --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware"
+	"kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_connect_configs --replication-factor 1 --partitions 1 --config cleanup.policy=compact --disable-rack-aware \
+	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_connect_offsets --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware \
+	&& kafka-topics --create --if-not-exists --zookeeper zookeeper:2181/kafka --topic $(CONNECT_TOPIC_NAMESPACE)_connect_status --replication-factor 1 --partitions 10 --config cleanup.policy=compact --disable-rack-aware"
 
 clean-connect-topics-$(CONNECT_TOPIC_NAMESPACE):
 	docker-compose -f $(CONNECT_COMPOSE_FILE) -p $(COMPOSE_PROJECT_NAME) exec kafka bash -c \
-	"kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_config
-	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_offsets
-	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_status"
+	"kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_connect_config
+	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_connect_offsets
+	&& kafka-topics --zookeeper zookeeper:2181/kafka --delete --topic $(CONNECT_TOPIC_NAMESPACE)_connect_status"
 
 clean-connector-$(CONNECTOR_NAME):
 	@curl -XDELETE $(CONNECT_URL)/connectors/$(CONNECTOR_NAME)
