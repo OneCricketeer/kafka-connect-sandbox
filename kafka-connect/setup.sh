@@ -46,4 +46,4 @@ download_kafkaconnect_plugin \
   kafka-connect-transform-archive
 
 mssql_jdbc_version=6.4.0.jre8
-download_mvn_jdbc_jar "com/microsoft/sqlserver/mssql-jdbc/${mssql_jdbc_version}/mssql-jdbc-${mssql_jdbc_version}.jar"
+download_mvn_central_jdbc "com/microsoft/sqlserver/mssql-jdbc/${mssql_jdbc_version}/mssql-jdbc-${mssql_jdbc_version}.jar"
