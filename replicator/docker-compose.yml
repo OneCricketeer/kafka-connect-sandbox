@@ -1,0 +1,128 @@
+version: '3'
+
+services:
+
+  zookeeper-a:
+    image: confluentinc/cp-zookeeper:${CP_TAG}
+    ports:
+      - 2181:2181
+    networks:
+      - kafka-backend-a
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  zookeeper-b:
+    image: confluentinc/cp-zookeeper:${CP_TAG}
+    ports:
+      - 2281:2181
+    networks:
+      - kafka-backend-b
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+
+  kafka-a:
+    image: confluentinc/cp-kafka:${CP_TAG}
+    ports:
+      - 9092:9092
+      - 29092:29092
+    depends_on:
+      - zookeeper-a
+    networks:
+      - kafka-backend-a
+      - kafka-connect
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-a:2181/kafka"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-a:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  kafka-b:
+    image: confluentinc/cp-kafka:${CP_TAG}
+    ports:
+      - 9192:9092
+      - 29192:29092
+    depends_on:
+      - zookeeper-b
+    networks:
+      - kafka-backend-b
+      - kafka-connect
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: "zookeeper-b:2181/kafka"
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-b:9092,PLAINTEXT_HOST://localhost:29192
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+
+  schema-registry-a:
+    image: confluentinc/cp-schema-registry:${CP_TAG}
+    hostname: schema-registry-a
+    depends_on:
+      - kafka-a
+    ports:
+      - 8081:8081
+    networks:
+      - kafka-connect
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-a
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-a:9092
+
+
+  schema-registry-b:
+    image: confluentinc/cp-schema-registry:${CP_TAG}
+    hostname: schema-registry-b
+    depends_on:
+      - kafka-b
+    ports:
+      - 8181:8081
+    networks:
+      - kafka-connect
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-b
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: kafka-b:9092
+
+
+  kafka-connect:
+    image: confluentinc/cp-enterprise-replicator:${CP_TAG}
+    hostname: kafka-connect
+    depends_on:
+      - kafka-b
+    ports:
+      - 8083:8083
+    networks:
+      - kafka-connect
+    environment:
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_BOOTSTRAP_SERVERS: kafka-b:9092
+
+      CONNECT_GROUP_ID: cg_${CONNECT_TOPIC_NAMESPACE}
+      CONNECT_CONFIG_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_config
+      CONNECT_OFFSET_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_offsets
+      CONNECT_STATUS_STORAGE_TOPIC: ${CONNECT_TOPIC_NAMESPACE}_connect_status
+
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
+
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.converters.ByteArrayConverter
+      CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+      CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/uber/,/etc/kafka-connect/plugins
+
+      # Logging
+      CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
+      CONNECT_LOG4J_LOGGERS: org.reflections=ERROR
+      # Connect client overrides
+      CONNECT_TASK_SHUTDOWN_GRACEFUL_TIMEOUT_MS: 30000
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
+      CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
+    volumes:
+      - ./jars:/etc/kafka-connect/uber/
+
+networks:
+  kafka-backend-a:
+  kafka-backend-b:
+  kafka-connect:
