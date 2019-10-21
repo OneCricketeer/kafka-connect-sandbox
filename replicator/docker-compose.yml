@@ -110,7 +110,7 @@ services:
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
 
-      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/uber/,/etc/kafka-connect/plugins
+      CONNECT_PLUGIN_PATH: /usr/share/java,/etc/kafka-connect/uber/,/etc/kafka-connect/plugins,/usr/share/confluent-hub-components
 
       # Logging
       CONNECT_LOG4J_ROOT_LOGLEVEL: INFO
@@ -120,7 +120,21 @@ services:
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
       CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
     volumes:
-      - ./jars:/etc/kafka-connect/uber/
+      - ./jars:/etc/kafka-connect/uber/:ro
+      - ./scripts:/scripts:ro
+    command: 
+      - bash
+      - -c
+      - |
+        confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:0.1.5
+        /etc/confluent/docker/run &
+        echo "Waiting for Kafka Connect to start listening on kafka-connect ⏳"
+        while [ $$(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) -ne 200 ] ; do
+          echo -e $$(date) " Kafka Connect listener HTTP state: " $$(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) " (waiting for 200)"
+          sleep 5
+        done
+        nc -vz kafka-connect 8083
+        sleep infinity
 
 networks:
   kafka-backend-a:

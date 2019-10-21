@@ -1,0 +1,5 @@
+{"type":"record","name":"Record","namespace":"io.confluent.example","fields":[
+    {"name":"time","type":"long","logicalType":"timestamp-millis"},
+    {"name":"desc","type":"string"},
+    {"name":"counter","type":"int", "default": -1}
+]}
