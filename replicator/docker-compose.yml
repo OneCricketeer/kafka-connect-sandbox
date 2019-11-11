@@ -120,13 +120,14 @@ services:
       CONNECT_OFFSET_FLUSH_INTERVAL_MS: 900000
       CONNECT_CONSUMER_MAX_POLL_RECORDS: 500
     volumes:
-      - ./jars:/etc/kafka-connect/uber/:ro
+      - ./jars:/etc/kafka-connect/uber/
       - ./scripts:/scripts:ro
-    command: 
+    command:
       - bash
       - -c
       - |
-        confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:0.1.5
+        # confluent-hub install --no-prompt confluentinc/kafka-connect-datagen:0.1.5
+        wget -O /etc/kafka-connect/uber/schema-registry-transfer-smt-${SCHEMA_TRANSFER_SMT_VER}.jar https://bintray.com/cricket007/maven-releases/download_file?file_path=cricket%2Fjmoore%2Fschema-registry-transfer-smt%2F${SCHEMA_TRANSFER_SMT_VER}%2Fschema-registry-transfer-smt-${SCHEMA_TRANSFER_SMT_VER}.jar
         /etc/confluent/docker/run &
         echo "Waiting for Kafka Connect to start listening on kafka-connect ⏳"
         while [ $$(curl -s -o /dev/null -w %{http_code} http://kafka-connect:8083/connectors) -ne 200 ] ; do
